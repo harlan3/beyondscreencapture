@@ -52,16 +52,18 @@ public class DesktopScreenRecorder extends ScreenRecorder {
 		gc.copyArea(swtImage, recordArea.x, recordArea.y);
 		gc.dispose();
 
-		//Slower method
-		//BufferedImage image = ImageCoversion.convertToAWT(swtImage.getImageData());
+		BufferedImage image = ImageCoversion.convertToAWT(swtImage.getImageData());
 		
+		// This works on Linux but not Windows
+		/*
 		int width = swtImage.getBounds().width;
 		int height = swtImage.getBounds().height;	
 		int[] pixels = new int[(width * height)];
 		
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		swtImage.getImageData().getPixels(0, 0, pixels.length, pixels, 0);
 		image.getRaster().setDataElements(0, 0, width, height, pixels);
+		*/
 		
 		Graphics2D grfx = image.createGraphics();
 		grfx.drawImage(mouseCursor, mousePosition.x - 8, mousePosition.y - 5, null);
