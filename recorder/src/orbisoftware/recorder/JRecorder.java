@@ -27,7 +27,7 @@ public class JRecorder implements ScreenRecorderListener {
 
 	private Display display;
 	private Shell shell;
-	
+
 	public boolean isWindows() {
 
 		return (myOS.indexOf("win") >= 0);
@@ -42,7 +42,7 @@ public class JRecorder implements ScreenRecorderListener {
 
 		display = new Display();
 		shell = new Shell(display, (SWT.ON_TOP | SWT.RESIZE | SWT.CLOSE | SWT.TITLE));
-		
+
 		RowLayout layout = new RowLayout();
 
 		if (isWindows())
@@ -87,7 +87,8 @@ public class JRecorder implements ScreenRecorderListener {
 		stop.setBounds(200, 0, 100, 30);
 		Listener stopListener = new Listener() {
 			public void handleEvent(Event event) {
-				recorder.stopRecording();
+				if (recorder != null)
+					recorder.stopRecording();
 			}
 		};
 		stop.addListener(SWT.Selection, stopListener);
@@ -108,7 +109,7 @@ public class JRecorder implements ScreenRecorderListener {
 		} catch (InterruptedException e1) {
 		}
 
-		if (recorder != null) {
+		if ((recorder != null) || (clippingSelector.clipRect == null)) {
 			return;
 		}
 
@@ -124,7 +125,7 @@ public class JRecorder implements ScreenRecorderListener {
 
 	public void frameRecorded() {
 		frameCount++;
-		//System.out.println("Frame count: " + frameCount);
+		System.out.println("Frame count: " + frameCount);
 	}
 
 	public void recordingStopped() {
@@ -138,19 +139,21 @@ public class JRecorder implements ScreenRecorderListener {
 			dialog.setFileName("MyCapture.cap");
 			String saveFileName = dialog.open();
 
-			File target = new File(saveFileName);
-			if (target != null) {
+			if (saveFileName != null) {
+				File target = new File(saveFileName);
+				if (target != null) {
 
-				if (!target.getName().endsWith(".cap"))
-					target = new File(target + ".cap");
+					if (!target.getName().endsWith(".cap"))
+						target = new File(target + ".cap");
 
-				FileHelper.copy(temp, target);
+					FileHelper.copy(temp, target);
+				}
 			}
-
+			
 			FileHelper.delete(temp);
 			recorder = null;
 			frameCount = 0;
-			
+
 			shutdown();
 		} else
 			FileHelper.delete(temp);

@@ -156,7 +156,7 @@ public abstract class ScreenRecorder implements Runnable {
 
 	public void startRecording() {
 
-		if (recordArea == null) {
+		if (recording || (recordArea == null)) {
 			return;
 		}
 		try {
@@ -174,6 +174,9 @@ public abstract class ScreenRecorder implements Runnable {
 
 	public void stopRecording() {
 
+		if (!recording)
+			return;
+		
 		triggerRecordingStop();
 
 		int count = 0;
