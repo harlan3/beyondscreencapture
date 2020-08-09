@@ -10,52 +10,52 @@ import javax.media.protocol.PullBufferDataSource;
 import javax.media.protocol.PullBufferStream;
 
 class PlayerDataSource extends PullBufferDataSource {
-   PlayerSourceStream streams[];
+	PlayerSourceStream streams[];
 
-   private PlayerSourceStream playerSourceStream;
+	private PlayerSourceStream playerSourceStream;
 
-   PlayerDataSource(String screenRecordingFileName) throws IOException {
-      streams = new PlayerSourceStream[1];
-      playerSourceStream = new PlayerSourceStream(screenRecordingFileName);
-      streams[0] = playerSourceStream;
-   }
+	PlayerDataSource(String screenRecordingFileName) throws IOException {
+		streams = new PlayerSourceStream[1];
+		playerSourceStream = new PlayerSourceStream(screenRecordingFileName);
+		streams[0] = playerSourceStream;
+	}
 
-   public void setLocator(MediaLocator source) {
-   }
+	public void setLocator(MediaLocator source) {
+	}
 
-   public MediaLocator getLocator() {
-      return null;
-   }
+	public MediaLocator getLocator() {
+		return null;
+	}
 
-   public String getContentType() {
-      return ContentDescriptor.RAW;
-   }
+	public String getContentType() {
+		return ContentDescriptor.RAW;
+	}
 
-   public void connect() {
-   }
+	public void connect() {
+	}
 
-   public void disconnect() {
-   }
+	public void disconnect() {
+	}
 
-   public void start() {
-   }
+	public void start() {
+	}
 
-   public void stop() {
-   }
+	public void stop() {
+	}
 
-   public PullBufferStream[] getStreams() {
-      return streams;
-   }
+	public PullBufferStream[] getStreams() {
+		return streams;
+	}
 
-   public Time getDuration() {
-      return DURATION_UNKNOWN;
-   }
+	public Time getDuration() {
+		return DURATION_UNKNOWN;
+	}
 
-   public Object[] getControls() {
-      return new Object[0];
-   }
+	public Object[] getControls() {
+		return new Object[0];
+	}
 
-   public Object getControl(String type) {
-      return null;
-   }
+	public Object getControl(String type) {
+		return null;
+	}
 }

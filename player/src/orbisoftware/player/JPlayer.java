@@ -21,360 +21,358 @@ import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 
 @SuppressWarnings("serial")
-public class JPlayer extends JFrame implements ScreenPlayerListener,
-      ActionListener {
-
-   private ScreenPlayer screenPlayer;
-
-   private ImageIcon icon;
-   private JButton open;
-   private JButton reset;
-   private JButton play;
-   private JButton fastForward;
-   private JButton pause;
-   private JButton stop;
-
-   private JLabel text;
-   private JLabel frameLabel;
-
-   private String target;
-   private int frameCount;
-   private long startTime;
-
-   private Color activeButtonColor = new Color(248,229,179);
-
-   public JPlayer() {
-
-      JPanel panel = new JPanel();
-      panel.setLayout(new GridLayout(1, 6));
-      setTitle("Screen Player");
-
-      addWindowListener(new WindowAdapter() {
-         public void windowClosing(WindowEvent e) {
-
-            if (screenPlayer != null)
-               screenPlayer.stop();
-            dispose();
-         }
-      });
-
-      open = new JButton("Open Recording");
-      open.setActionCommand("open");
-      open.addActionListener(this);
-
-      reset = new JButton("Reset");
-      reset.setActionCommand("reset");
-      reset.setEnabled(false);
-      reset.addActionListener(this);
-
-      play = new JButton("Play");
-      play.setActionCommand("play");
-      play.setEnabled(false);
-      play.addActionListener(this);
-
-      fastForward = new JButton("Fast Forward");
-      fastForward.setActionCommand("fastForward");
-      fastForward.setEnabled(false);
-      fastForward.addActionListener(this);
-
-      pause = new JButton("Pause");
-      pause.setActionCommand("pause");
-      pause.setEnabled(false);
-      pause.addActionListener(this);
-
-      stop = new JButton("Stop");
-      stop.setActionCommand("stop");
-      stop.setEnabled(false);
-      stop.addActionListener(this);
-
-      panel.add(open);
-      panel.add(reset);
-      panel.add(play);
-      panel.add(fastForward);
-      panel.add(pause);
-      panel.add(stop);
-      panel.doLayout();
-
-      this.getContentPane().add(panel, BorderLayout.NORTH);
-
-      panel = new JPanel();
-      panel.setLayout(new GridLayout(1, 2));
-      panel.setBackground(Color.black);
-
-      frameLabel = new JLabel("Frame: 0 Time: 0");
-      frameLabel.setBackground(Color.black);
-      frameLabel.setForeground(Color.red);
-      text = new JLabel("No recording selected");
-      text.setBackground(Color.black);
-      text.setForeground(Color.red);
-
-      panel.add(text);
-      panel.add(frameLabel);
-
-      this.getContentPane().add(panel, BorderLayout.SOUTH);
-
-      this.pack();
-      this.setVisible(true);
-   }
-
-   public void actionPerformed(ActionEvent ev) {
-
-      if (ev.getActionCommand().equals("open")) {
-         UIManager.put("FileChooser.readOnly", true);
-         JFileChooser fileChooser = new JFileChooser();
-         FileExtensionFilter filter = new FileExtensionFilter();
-
-         filter = new FileExtensionFilter();
-         filter.addExtension("cap");
-         filter.setDescription("Screen Capture File");
-         
-         if (target != null) {
-            fileChooser.setSelectedFile(new File(target));
-         }
-         fileChooser.setFileFilter(filter);
-         fileChooser.showOpenDialog(this);
-
-         if (fileChooser.getSelectedFile() != null) {
-            target = fileChooser.getSelectedFile().getAbsolutePath();
-
-            open();
-         }
-      } else if (ev.getActionCommand().equals("play")) {
-         play();
-      } else if (ev.getActionCommand().equals("reset")) {
-         reset();
-      } else if (ev.getActionCommand().equals("fastForward")) {
-         fastForward();
-      } else if (ev.getActionCommand().equals("pause")) {
-         pause();
-      } else if (ev.getActionCommand().equals("stop")) {
-         stop();
-      }
-   }
-
-   public void playerPaused() {
-      
-      open.setEnabled(false);
-      open.setBackground(null);
-
-      reset.setEnabled(true);
-      reset.setBackground(null);
-
-      play.setEnabled(false);
-      play.setBackground(null);
-
-      fastForward.setEnabled(false);
-      fastForward.setBackground(null);
-
-      pause.setEnabled(false);
-      pause.setBackground(null);
-
-      stop.setEnabled(true);
-      stop.setBackground(null);
-      
-      text.setText("Finished playing " + target);
-   }
-   
-   public void playerStopped() {
-
-      stop();
-   }
-
-   public void showNewImage(Image image) {
-      if (icon == null) {
-         icon = new ImageIcon(image);
-         JLabel label = new JLabel(icon);
-
-         JScrollPane scrollPane = new JScrollPane(label);
-         scrollPane.setSize(image.getWidth(this), image.getHeight(this));
-
-         this.getContentPane().add(scrollPane, BorderLayout.CENTER);
-
-         pack();
-         setVisible(true);
-      } else {
-         icon.setImage(image);
-      }
-
-      repaint(0);
-   }
-
-   public void newFrame() {
-      frameCount++;
-      long time = System.currentTimeMillis() - startTime;
-      String seconds = "" + time / 1000;
-      String milliseconds = String.format("%04d", time % 1000);
-      frameLabel.setText("Frame: " + frameCount + " Time: " + seconds + "."
-            + milliseconds);
-   }
+public class JPlayer extends JFrame implements ScreenPlayerListener, ActionListener {
+
+	private ScreenPlayer screenPlayer;
+
+	private ImageIcon icon;
+	private JButton open;
+	private JButton reset;
+	private JButton play;
+	private JButton fastForward;
+	private JButton pause;
+	private JButton stop;
+
+	private JLabel text;
+	private JLabel frameLabel;
+
+	private String target;
+	private int frameCount;
+	private long startTime;
+
+	private Color activeButtonColor = new Color(248, 229, 179);
+
+	public JPlayer() {
+
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridLayout(1, 6));
+		setTitle("Screen Player");
+
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+
+				if (screenPlayer != null)
+					screenPlayer.stop();
+				dispose();
+			}
+		});
+
+		open = new JButton("Open Recording");
+		open.setActionCommand("open");
+		open.addActionListener(this);
+
+		reset = new JButton("Reset");
+		reset.setActionCommand("reset");
+		reset.setEnabled(false);
+		reset.addActionListener(this);
+
+		play = new JButton("Play");
+		play.setActionCommand("play");
+		play.setEnabled(false);
+		play.addActionListener(this);
+
+		fastForward = new JButton("Fast Forward");
+		fastForward.setActionCommand("fastForward");
+		fastForward.setEnabled(false);
+		fastForward.addActionListener(this);
+
+		pause = new JButton("Pause");
+		pause.setActionCommand("pause");
+		pause.setEnabled(false);
+		pause.addActionListener(this);
+
+		stop = new JButton("Stop");
+		stop.setActionCommand("stop");
+		stop.setEnabled(false);
+		stop.addActionListener(this);
+
+		panel.add(open);
+		panel.add(reset);
+		panel.add(play);
+		panel.add(fastForward);
+		panel.add(pause);
+		panel.add(stop);
+		panel.doLayout();
+
+		this.getContentPane().add(panel, BorderLayout.NORTH);
+
+		panel = new JPanel();
+		panel.setLayout(new GridLayout(1, 2));
+		panel.setBackground(Color.black);
+
+		frameLabel = new JLabel("Frame: 0 Time: 0");
+		frameLabel.setBackground(Color.black);
+		frameLabel.setForeground(Color.red);
+		text = new JLabel("No recording selected");
+		text.setBackground(Color.black);
+		text.setForeground(Color.red);
+
+		panel.add(text);
+		panel.add(frameLabel);
+
+		this.getContentPane().add(panel, BorderLayout.SOUTH);
+
+		this.pack();
+		this.setVisible(true);
+	}
+
+	public void actionPerformed(ActionEvent ev) {
+
+		if (ev.getActionCommand().equals("open")) {
+			UIManager.put("FileChooser.readOnly", true);
+			JFileChooser fileChooser = new JFileChooser();
+			FileExtensionFilter filter = new FileExtensionFilter();
+
+			filter = new FileExtensionFilter();
+			filter.addExtension("cap");
+			filter.setDescription("Screen Capture File");
+
+			if (target != null) {
+				fileChooser.setSelectedFile(new File(target));
+			}
+			fileChooser.setFileFilter(filter);
+			fileChooser.showOpenDialog(this);
+
+			if (fileChooser.getSelectedFile() != null) {
+				target = fileChooser.getSelectedFile().getAbsolutePath();
+
+				open();
+			}
+		} else if (ev.getActionCommand().equals("play")) {
+			play();
+		} else if (ev.getActionCommand().equals("reset")) {
+			reset();
+		} else if (ev.getActionCommand().equals("fastForward")) {
+			fastForward();
+		} else if (ev.getActionCommand().equals("pause")) {
+			pause();
+		} else if (ev.getActionCommand().equals("stop")) {
+			stop();
+		}
+	}
+
+	public void playerPaused() {
 
-   public static void main(String[] args) {
-      JPlayer viewer = new JPlayer();
-      if (args.length == 1) {
-         viewer.target = new File(args[0]).getAbsolutePath();
-         viewer.open();
-      }
-   }
+		open.setEnabled(false);
+		open.setBackground(null);
 
-   public boolean open() {
+		reset.setEnabled(true);
+		reset.setBackground(null);
 
-      if (target != null) {
-         try {
-            screenPlayer = new ScreenPlayer(target, this);
-            frameCount = 0;
-         } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-         }
-      }
+		play.setEnabled(false);
+		play.setBackground(null);
 
-      open.setEnabled(false);
-      open.setBackground(null);
+		fastForward.setEnabled(false);
+		fastForward.setBackground(null);
 
-      reset.setEnabled(true);
-      reset.setBackground(null);
+		pause.setEnabled(false);
+		pause.setBackground(null);
 
-      play.setEnabled(true);
-      play.setBackground(null);
+		stop.setEnabled(true);
+		stop.setBackground(null);
 
-      fastForward.setEnabled(true);
-      fastForward.setBackground(null);
+		text.setText("Finished playing " + target);
+	}
 
-      pause.setEnabled(true);
-      pause.setBackground(null);
+	public void playerStopped() {
 
-      stop.setEnabled(true);
-      stop.setBackground(null);
+		stop();
+	}
 
-      text.setText("Ready to play " + target);
+	public void showNewImage(Image image) {
+		if (icon == null) {
+			icon = new ImageIcon(image);
+			JLabel label = new JLabel(icon);
 
-      return true;
-   }
+			JScrollPane scrollPane = new JScrollPane(label);
+			scrollPane.setSize(image.getWidth(this), image.getHeight(this));
 
-   public void reset() {
+			this.getContentPane().add(scrollPane, BorderLayout.CENTER);
 
-      open.setEnabled(false);
-      open.setBackground(null);
+			pack();
+			setVisible(true);
+		} else {
+			icon.setImage(image);
+		}
 
-      reset.setEnabled(true);
-      reset.setBackground(null);
+		repaint(0);
+	}
 
-      play.setEnabled(true);
-      play.setBackground(null);
+	public void newFrame() {
+		frameCount++;
+		long time = System.currentTimeMillis() - startTime;
+		String seconds = "" + time / 1000;
+		String milliseconds = String.format("%04d", time % 1000);
+		frameLabel.setText("Frame: " + frameCount + " Time: " + seconds + "." + milliseconds);
+	}
 
-      fastForward.setEnabled(true);
-      fastForward.setBackground(null);
+	public static void main(String[] args) {
+		JPlayer viewer = new JPlayer();
+		if (args.length == 1) {
+			viewer.target = new File(args[0]).getAbsolutePath();
+			viewer.open();
+		}
+	}
 
-      pause.setEnabled(true);
-      pause.setBackground(null);
+	public boolean open() {
 
-      stop.setEnabled(true);
-      stop.setBackground(null);
+		if (target != null) {
+			try {
+				screenPlayer = new ScreenPlayer(target, this);
+				frameCount = 0;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
 
-      frameCount = 0;
-      startTime = System.currentTimeMillis();
-      ;
+		open.setEnabled(false);
+		open.setBackground(null);
 
-      screenPlayer.reset();
-      text.setText("Ready to play " + target);
-   }
+		reset.setEnabled(true);
+		reset.setBackground(null);
 
-   public void play() {
+		play.setEnabled(true);
+		play.setBackground(null);
 
-      open.setEnabled(false);
-      open.setBackground(null);
+		fastForward.setEnabled(true);
+		fastForward.setBackground(null);
 
-      reset.setEnabled(true);
-      reset.setBackground(null);
+		pause.setEnabled(true);
+		pause.setBackground(null);
 
-      play.setEnabled(false);
-      play.setBackground(activeButtonColor);
+		stop.setEnabled(true);
+		stop.setBackground(null);
 
-      fastForward.setEnabled(true);
-      fastForward.setBackground(null);
+		text.setText("Ready to play " + target);
 
-      pause.setEnabled(true);
-      pause.setBackground(null);
+		return true;
+	}
 
-      stop.setEnabled(true);
-      stop.setBackground(null);
+	public void reset() {
 
-      screenPlayer.play();
-      startTime = System.currentTimeMillis();
+		open.setEnabled(false);
+		open.setBackground(null);
 
-      text.setText("Playing " + target);
-   }
+		reset.setEnabled(true);
+		reset.setBackground(null);
 
-   public void fastForward() {
+		play.setEnabled(true);
+		play.setBackground(null);
 
-      open.setEnabled(false);
-      open.setBackground(null);
+		fastForward.setEnabled(true);
+		fastForward.setBackground(null);
 
-      reset.setEnabled(false);
-      reset.setBackground(null);
+		pause.setEnabled(true);
+		pause.setBackground(null);
 
-      play.setEnabled(true);
-      play.setBackground(null);
+		stop.setEnabled(true);
+		stop.setBackground(null);
 
-      fastForward.setEnabled(false);
-      fastForward.setBackground(activeButtonColor);
+		frameCount = 0;
+		startTime = System.currentTimeMillis();
+		;
 
-      pause.setEnabled(true);
-      pause.setBackground(null);
+		screenPlayer.reset();
+		text.setText("Ready to play " + target);
+	}
 
-      stop.setEnabled(true);
-      stop.setBackground(null);
+	public void play() {
 
-      screenPlayer.fastforward();
+		open.setEnabled(false);
+		open.setBackground(null);
 
-      text.setText("Fast Forward " + target);
-   }
+		reset.setEnabled(true);
+		reset.setBackground(null);
 
-   public void pause() {
+		play.setEnabled(false);
+		play.setBackground(activeButtonColor);
 
-      open.setEnabled(false);
-      open.setBackground(null);
+		fastForward.setEnabled(true);
+		fastForward.setBackground(null);
 
-      reset.setEnabled(true);
-      reset.setBackground(null);
+		pause.setEnabled(true);
+		pause.setBackground(null);
 
-      play.setEnabled(true);
-      play.setBackground(null);
+		stop.setEnabled(true);
+		stop.setBackground(null);
 
-      fastForward.setEnabled(true);
-      fastForward.setBackground(null);
+		screenPlayer.play();
+		startTime = System.currentTimeMillis();
 
-      pause.setEnabled(false);
-      pause.setBackground(activeButtonColor);
+		text.setText("Playing " + target);
+	}
 
-      stop.setEnabled(true);
-      stop.setBackground(null);
+	public void fastForward() {
 
-      screenPlayer.pause();
-      text.setText("Paused " + target);
-   }
+		open.setEnabled(false);
+		open.setBackground(null);
 
-   public void stop() {
+		reset.setEnabled(false);
+		reset.setBackground(null);
 
-      open.setEnabled(true);
-      open.setBackground(null);
+		play.setEnabled(true);
+		play.setBackground(null);
 
-      reset.setEnabled(false);
-      reset.setBackground(null);
+		fastForward.setEnabled(false);
+		fastForward.setBackground(activeButtonColor);
 
-      play.setEnabled(false);
-      play.setBackground(null);
+		pause.setEnabled(true);
+		pause.setBackground(null);
 
-      fastForward.setEnabled(false);
-      fastForward.setBackground(null);
+		stop.setEnabled(true);
+		stop.setBackground(null);
 
-      pause.setEnabled(false);
-      pause.setBackground(null);
+		screenPlayer.fastforward();
 
-      stop.setEnabled(false);
-      stop.setBackground(null);
+		text.setText("Fast Forward " + target);
+	}
 
-      screenPlayer.stop();
-      text.setText("No recording selected");
-   }
+	public void pause() {
+
+		open.setEnabled(false);
+		open.setBackground(null);
+
+		reset.setEnabled(true);
+		reset.setBackground(null);
+
+		play.setEnabled(true);
+		play.setBackground(null);
+
+		fastForward.setEnabled(true);
+		fastForward.setBackground(null);
+
+		pause.setEnabled(false);
+		pause.setBackground(activeButtonColor);
+
+		stop.setEnabled(true);
+		stop.setBackground(null);
+
+		screenPlayer.pause();
+		text.setText("Paused " + target);
+	}
+
+	public void stop() {
+
+		open.setEnabled(true);
+		open.setBackground(null);
+
+		reset.setEnabled(false);
+		reset.setBackground(null);
+
+		play.setEnabled(false);
+		play.setBackground(null);
+
+		fastForward.setEnabled(false);
+		fastForward.setBackground(null);
+
+		pause.setEnabled(false);
+		pause.setBackground(null);
+
+		stop.setEnabled(false);
+		stop.setBackground(null);
+
+		screenPlayer.stop();
+		text.setText("No recording selected");
+	}
 }

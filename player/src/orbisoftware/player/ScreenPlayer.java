@@ -10,169 +10,166 @@ import java.io.IOException;
 
 public class ScreenPlayer implements Runnable {
 
-   private ScreenPlayerListener listener;
+	private ScreenPlayerListener listener;
 
-   private MemoryImageSource mis = null;
-   private Rectangle area;
+	private MemoryImageSource mis = null;
+	private Rectangle area;
 
-   private FrameDecompressor decompressor;
+	private FrameDecompressor decompressor;
 
-   private long startTime;
-   private long frameTime;
-   private long lastFrameTime;
+	private long startTime;
+	private long frameTime;
+	private long lastFrameTime;
 
-   private boolean running;
-   private boolean paused;
-   private boolean fastForward;
+	private boolean running;
+	private boolean paused;
+	private boolean fastForward;
 
-   private boolean resetReq;
+	private boolean resetReq;
 
-   private FileInputStream iStream;
-   private String videoFile;
-   private int width;
-   private int height;
+	private FileInputStream iStream;
+	private String videoFile;
+	private int width;
+	private int height;
 
-   public ScreenPlayer(String videoFile, ScreenPlayerListener listener) {
+	public ScreenPlayer(String videoFile, ScreenPlayerListener listener) {
 
-      this.listener = listener;
-      this.videoFile = videoFile;
+		this.listener = listener;
+		this.videoFile = videoFile;
 
-      initialize();
-   }
+		initialize();
+	}
 
-   private void initialize() {
+	private void initialize() {
 
-      startTime = System.currentTimeMillis();
-      frameTime = startTime;
-      lastFrameTime = startTime;
-      paused = true;
+		startTime = System.currentTimeMillis();
+		frameTime = startTime;
+		lastFrameTime = startTime;
+		paused = true;
 
-      try {
+		try {
 
-         iStream = new FileInputStream(videoFile);
+			iStream = new FileInputStream(videoFile);
 
-         width = iStream.read();
-         width = width << 8;
-         width += iStream.read();
+			width = iStream.read();
+			width = width << 8;
+			width += iStream.read();
 
-         height = iStream.read();
-         height = height << 8;
-         height += iStream.read();
+			height = iStream.read();
+			height = height << 8;
+			height += iStream.read();
 
-         area = new Rectangle(width, height);
-         decompressor = new FrameDecompressor(iStream, width * height);
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
+			area = new Rectangle(width, height);
+			decompressor = new FrameDecompressor(iStream, width * height);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-   public void reset_req() {
+	public void reset_req() {
 
-      paused = true;
-      fastForward = false;
-      resetReq = true;
-   }
+		paused = true;
+		fastForward = false;
+		resetReq = true;
+	}
 
-   public void reset() {
+	public void reset() {
 
-      resetReq = false;
-      initialize();
-   }
+		resetReq = false;
+		initialize();
+	}
 
-   public void play() {
+	public void play() {
 
-      fastForward = false;
-      paused = false;
+		fastForward = false;
+		paused = false;
 
-      if (running == false) {
-         new Thread(this, "Screen Player").start();
-      }
-   }
+		if (running == false) {
+			new Thread(this, "Screen Player").start();
+		}
+	}
 
-   public void fastforward() {
-      fastForward = true;
-      paused = false;
-   }
+	public void fastforward() {
+		fastForward = true;
+		paused = false;
+	}
 
-   public void pause() {
-      paused = true;
-   }
+	public void pause() {
+		paused = true;
+	}
 
-   public void stop() {
-      paused = false;
-      running = false;
-   }
+	public void stop() {
+		paused = false;
+		running = false;
+	}
 
-   public synchronized void run() {
+	public synchronized void run() {
 
-      running = true;
+		running = true;
 
-      while (running) {
+		while (running) {
 
-         while (paused && !resetReq) {
+			while (paused && !resetReq) {
 
-            try {
-               Thread.sleep(50);
-            } catch (Exception e) {
-            }
-            startTime += 50;
-         }
+				try {
+					Thread.sleep(50);
+				} catch (Exception e) {
+				}
+				startTime += 50;
+			}
 
-         try {
-            readFrame();
-            listener.newFrame();
-         } catch (IOException ioe) {
-            listener.showNewImage(null);
-            break;
-         }
+			try {
+				readFrame();
+				listener.newFrame();
+			} catch (IOException ioe) {
+				listener.showNewImage(null);
+				break;
+			}
 
-         if (fastForward == true) {
-            startTime -= (frameTime - lastFrameTime);
-         } else {
-            while ((System.currentTimeMillis() - startTime < frameTime)
-                  && !paused) {
-               try {
-                  Thread.sleep(100);
-               } catch (Exception e) {
-               }
-            }
-         }
+			if (fastForward == true) {
+				startTime -= (frameTime - lastFrameTime);
+			} else {
+				while ((System.currentTimeMillis() - startTime < frameTime) && !paused) {
+					try {
+						Thread.sleep(100);
+					} catch (Exception e) {
+					}
+				}
+			}
 
-         lastFrameTime = frameTime;
-      }
+			lastFrameTime = frameTime;
+		}
 
-      listener.playerStopped();
-   }
+		listener.playerStopped();
+	}
 
-   private void readFrame() throws IOException {
+	private void readFrame() throws IOException {
 
-      if (resetReq) {
-         reset();
-         return;
-      }
+		if (resetReq) {
+			reset();
+			return;
+		}
 
-      FrameDecompressor.FramePacket frame = decompressor.unpack();
-      frameTime = frame.getTimeStamp();
+		FrameDecompressor.FramePacket frame = decompressor.unpack();
+		frameTime = frame.getTimeStamp();
 
-      int result = frame.getResult();
-      if (result == 0) {
-         return;
-      } else if (result == -1) {
-         paused = true;
-         listener.playerPaused();
-         return;
-      }
+		int result = frame.getResult();
+		if (result == 0) {
+			return;
+		} else if (result == -1) {
+			paused = true;
+			listener.playerPaused();
+			return;
+		}
 
-      if (mis == null) {
-         mis = new MemoryImageSource(area.width, area.height, frame.getData(),
-               0, area.width);
-         mis.setAnimated(true);
-         listener.showNewImage(Toolkit.getDefaultToolkit().createImage(mis));
-         return;
-      } else {
-         mis.newPixels(frame.getData(), ColorModel.getRGBdefault(), 0,
-               area.width);
-         return;
-      }
-   }
+		if (mis == null) {
+			mis = new MemoryImageSource(area.width, area.height, frame.getData(), 0, area.width);
+			mis.setAnimated(true);
+			listener.showNewImage(Toolkit.getDefaultToolkit().createImage(mis));
+			return;
+		} else {
+			mis.newPixels(frame.getData(), ColorModel.getRGBdefault(), 0, area.width);
+			return;
+		}
+	}
 }

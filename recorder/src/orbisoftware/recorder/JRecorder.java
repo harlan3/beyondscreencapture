@@ -149,7 +149,7 @@ public class JRecorder implements ScreenRecorderListener {
 					FileHelper.copy(temp, target);
 				}
 			}
-			
+
 			FileHelper.delete(temp);
 			recorder = null;
 			frameCount = 0;

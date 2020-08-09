@@ -24,112 +24,108 @@ import javax.media.protocol.FileTypeDescriptor;
 
 public class RecordingConverter implements ControllerListener, DataSinkListener {
 
-   private static boolean finished = false;
-   private Object waitSync = new Object();
-   private boolean stateTransitionOK = true;
+	private static boolean finished = false;
+	private Object waitSync = new Object();
+	private boolean stateTransitionOK = true;
 
-   public static void main(String[] args) {
+	public static void main(String[] args) {
 
-      if ((args.length != 1) || !args[0].endsWith("cap")) {
-         System.out
-               .println("Usage: java -jar converter.jar <screen_cap_file.cap>");
-         return;
-      }
+		if ((args.length != 1) || !args[0].endsWith("cap")) {
+			System.out.println("Usage: java -jar converter.jar <screen_cap_file.cap>");
+			return;
+		}
 
-      String movieFile = new String(args[0]);
-      movieFile = movieFile.replace("cap", "mov");
+		String movieFile = new String(args[0]);
+		movieFile = movieFile.replace("cap", "mov");
 
-      RecordingConverter recordingConverter;
-      try {
-         recordingConverter = new RecordingConverter();
-         recordingConverter.process(args[0], movieFile);
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
+		RecordingConverter recordingConverter;
+		try {
+			recordingConverter = new RecordingConverter();
+			recordingConverter.process(args[0], movieFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-   public void process(String recordingFile, String movieFile) throws Exception {
+	public void process(String recordingFile, String movieFile) throws Exception {
 
-      MediaLocator mediaLocator = new MediaLocator(new File(movieFile).toURI()
-            .toURL());
-      PlayerDataSource playerDataSource = new PlayerDataSource(recordingFile);
-      Processor processor = Manager.createProcessor(playerDataSource);
-      processor.addControllerListener(this);
-      processor.configure();
+		MediaLocator mediaLocator = new MediaLocator(new File(movieFile).toURI().toURL());
+		PlayerDataSource playerDataSource = new PlayerDataSource(recordingFile);
+		Processor processor = Manager.createProcessor(playerDataSource);
+		processor.addControllerListener(this);
+		processor.configure();
 
-      if (!waitForState(processor, Processor.Configured)) {
-         System.err.println("Failed to configure the processor.");
-         return;
-      }
+		if (!waitForState(processor, Processor.Configured)) {
+			System.err.println("Failed to configure the processor.");
+			return;
+		}
 
-      processor.setContentDescriptor(new ContentDescriptor(
-            FileTypeDescriptor.QUICKTIME));
+		processor.setContentDescriptor(new ContentDescriptor(FileTypeDescriptor.QUICKTIME));
 
-      TrackControl trackControl[] = processor.getTrackControls();
-      Format format[] = trackControl[0].getSupportedFormats();
-      trackControl[0].setFormat(format[0]);
-      processor.realize();
-      if (!waitForState(processor, Processor.Realized)) {
-         System.err.println("Failed to realize the processor.");
-         return;
-      }
+		TrackControl trackControl[] = processor.getTrackControls();
+		Format format[] = trackControl[0].getSupportedFormats();
+		trackControl[0].setFormat(format[0]);
+		processor.realize();
+		if (!waitForState(processor, Processor.Realized)) {
+			System.err.println("Failed to realize the processor.");
+			return;
+		}
 
-      DataSource dataSource = processor.getDataOutput();
-      DataSink dataSink = Manager.createDataSink(dataSource, mediaLocator);
-      dataSink.open();
-      processor.start();
-      dataSink.start();
-      waitForFileDone();
-      dataSink.close();
-      processor.removeControllerListener(this);
-   }
+		DataSource dataSource = processor.getDataOutput();
+		DataSink dataSink = Manager.createDataSink(dataSource, mediaLocator);
+		dataSink.open();
+		processor.start();
+		dataSink.start();
+		waitForFileDone();
+		dataSink.close();
+		processor.removeControllerListener(this);
+	}
 
-   void waitForFileDone() {
+	void waitForFileDone() {
 
-      while (!finished) {
-         try {
-            Thread.sleep(50);
-         } catch (InterruptedException e) {
-            e.printStackTrace();
-         }
-      }
+		while (!finished) {
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 
-      return;
-   }
+		return;
+	}
 
-   public void dataSinkUpdate(DataSinkEvent evt) {
+	public void dataSinkUpdate(DataSinkEvent evt) {
 
-   }
+	}
 
-   boolean waitForState(Processor p, int state) {
-      synchronized (waitSync) {
-         try {
-            while (p.getState() < state && stateTransitionOK)
-               waitSync.wait();
-         } catch (Exception e) {
-         }
-      }
-      return stateTransitionOK;
-   }
+	boolean waitForState(Processor p, int state) {
+		synchronized (waitSync) {
+			try {
+				while (p.getState() < state && stateTransitionOK)
+					waitSync.wait();
+			} catch (Exception e) {
+			}
+		}
+		return stateTransitionOK;
+	}
 
-   public void controllerUpdate(ControllerEvent evt) {
+	public void controllerUpdate(ControllerEvent evt) {
 
-      if (evt instanceof ConfigureCompleteEvent
-            || evt instanceof RealizeCompleteEvent
-            || evt instanceof PrefetchCompleteEvent) {
-         synchronized (waitSync) {
-            stateTransitionOK = true;
-            waitSync.notifyAll();
-         }
-      } else if (evt instanceof ResourceUnavailableEvent) {
-         synchronized (waitSync) {
-            stateTransitionOK = false;
-            waitSync.notifyAll();
-         }
-      } else if (evt instanceof EndOfMediaEvent) {
-         evt.getSourceController().stop();
-         evt.getSourceController().close();
-         finished = true;
-      }
-   }
+		if (evt instanceof ConfigureCompleteEvent || evt instanceof RealizeCompleteEvent
+				|| evt instanceof PrefetchCompleteEvent) {
+			synchronized (waitSync) {
+				stateTransitionOK = true;
+				waitSync.notifyAll();
+			}
+		} else if (evt instanceof ResourceUnavailableEvent) {
+			synchronized (waitSync) {
+				stateTransitionOK = false;
+				waitSync.notifyAll();
+			}
+		} else if (evt instanceof EndOfMediaEvent) {
+			evt.getSourceController().stop();
+			evt.getSourceController().close();
+			finished = true;
+		}
+	}
 }

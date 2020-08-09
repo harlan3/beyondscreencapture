@@ -144,10 +144,10 @@ public abstract class ScreenRecorder implements Runnable {
 	public void recordFrame(Display display) throws IOException {
 
 		Image swtImage = captureScreen(display, recordArea);
-		
+
 		frameTime = System.currentTimeMillis() - startTime;
 		rawData = new int[frameSize];
-		
+
 		swtImage.getImageData().getPixels(0, 0, rawData.length, rawData, 0);
 
 		streamPacker.packToStream(new DataPack(rawData, frameTime));
@@ -176,7 +176,7 @@ public abstract class ScreenRecorder implements Runnable {
 
 		if (!recording)
 			return;
-		
+
 		triggerRecordingStop();
 
 		int count = 0;

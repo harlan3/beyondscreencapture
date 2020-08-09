@@ -16,7 +16,7 @@ public class FrameCompressor {
 
 		return (myOS.indexOf("win") >= 0);
 	}
-	
+
 	public class FramePacket {
 
 		private OutputStream oStream;
@@ -83,11 +83,24 @@ public class FrameCompressor {
 			}
 
 			if (newData[inCursor] == frame.previousData[inCursor]) {
-				red = 0;
-				green = 0;
-				blue = 0;
+
+				byte newRed = (byte) ((newData[inCursor] & 0x00FF0000) >>> 16);
+				byte newGreen = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
+				byte newBlue = (byte) ((newData[inCursor] & 0x000000FF));
+
+				// Black is always packed as RGB(0,0,1)
+				if ((newRed == 0) && (newGreen == 0) && (newBlue == 0)) {
+					red = 0;
+					green = 0;
+					blue = 1;
+				} else { // Use pixel from previous frame
+					red = 0;
+					green = 0;
+					blue = 0;
+				}
+
 			} else {
-				
+
 				if (isWindows()) {
 					blue = (byte) ((newData[inCursor] & 0x00FF0000) >>> 16);
 					green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
@@ -96,10 +109,6 @@ public class FrameCompressor {
 					red = (byte) ((newData[inCursor] & 0x00FF0000) >>> 16);
 					green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
 					blue = (byte) ((newData[inCursor] & 0x000000FF));
-				}
-
-				if (red == 0 && green == 0 && blue == 0) {
-					blue = 1;
 				}
 			}
 
