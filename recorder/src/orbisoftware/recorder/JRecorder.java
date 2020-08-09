@@ -46,7 +46,7 @@ public class JRecorder implements ScreenRecorderListener {
 		RowLayout layout = new RowLayout();
 
 		if (isWindows())
-			shell.setSize(318, 65);
+			shell.setSize(318, 70);
 		else if (isUnix())
 			shell.setSize(308, 37);
 
