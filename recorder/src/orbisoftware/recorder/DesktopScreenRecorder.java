@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.ImageLoader;
 
 public class DesktopScreenRecorder extends ScreenRecorder {
@@ -44,16 +45,19 @@ public class DesktopScreenRecorder extends ScreenRecorder {
 		Point mousePosition = MouseInfo.getPointerInfo().getLocation();
 		mousePosition.x = mousePosition.x - recordArea.x;
 		mousePosition.y = mousePosition.y - recordArea.y;
-    
-        final Image swtImage = new Image(display, recordArea);
-        
-        final GC gc = new GC(display);
-        gc.copyArea(swtImage, recordArea.x, recordArea.y);
-        gc.dispose();
-          
-        final GC gc2 = new GC(swtImage);
-        gc2.drawImage(mouseCursor, mousePosition.x - 8, mousePosition.y - 5);
-        gc2.dispose();
+
+		PaletteData palette = new PaletteData(0xFF0000,0xFF00, 0xFF);
+                ImageData imageData = new ImageData(recordArea.width, recordArea.height, 24, palette);
+                
+		final Image swtImage = new Image(display, imageData);
+		
+		final GC gc = new GC(display);
+		gc.copyArea(swtImage, recordArea.x, recordArea.y);
+		gc.dispose();
+		  
+		final GC gc2 = new GC(swtImage);
+		gc2.drawImage(mouseCursor, mousePosition.x - 8, mousePosition.y - 5);
+		gc2.dispose();
 
 		return swtImage;
 	}
