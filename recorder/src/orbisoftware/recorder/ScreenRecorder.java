@@ -1,12 +1,12 @@
 
 package orbisoftware.recorder;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
@@ -139,17 +139,17 @@ public abstract class ScreenRecorder implements Runnable {
 		});
 	}
 
-	public abstract BufferedImage captureScreen(Display display, Rectangle recordArea);
+	public abstract Image captureScreen(Display display, Rectangle recordArea);
 
 	public void recordFrame(Display display) throws IOException {
 
-		BufferedImage bImage = captureScreen(display, recordArea);
+		Image swtImage = captureScreen(display, recordArea);
 		
 		frameTime = System.currentTimeMillis() - startTime;
 		rawData = new int[frameSize];
 		
-		bImage.getRGB(0, 0, recordArea.width, recordArea.height, rawData, 0, recordArea.width);
-		
+		swtImage.getImageData().getPixels(0, 0, rawData.length, rawData, 0);
+
 		streamPacker.packToStream(new DataPack(rawData, frameTime));
 		listener.frameRecorded();
 	}

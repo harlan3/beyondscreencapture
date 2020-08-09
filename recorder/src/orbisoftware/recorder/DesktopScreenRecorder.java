@@ -1,31 +1,28 @@
 
 package orbisoftware.recorder;
 
-import java.awt.Graphics2D;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.OutputStream;
-import java.net.URL;
 
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
-import javax.imageio.ImageIO;
-
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 
 public class DesktopScreenRecorder extends ScreenRecorder {
 
 	public static boolean useWhiteCursor;
-	private BufferedImage mouseCursor;
-
-	public DesktopScreenRecorder(Rectangle rect, OutputStream oStream, ScreenRecorderListener listener) {
+	private Image mouseCursor;
+	
+	public DesktopScreenRecorder(Display display, Rectangle rect, OutputStream oStream, ScreenRecorderListener listener) {
 		super(rect, oStream, listener);
 
 		try {
-
 			String mouseCursorFile;
 
 			if (useWhiteCursor)
@@ -33,42 +30,31 @@ public class DesktopScreenRecorder extends ScreenRecorder {
 			else
 				mouseCursorFile = "black_cursor.png";
 
-			URL cursorURL = getClass().getClassLoader().getResource("mouse_cursors/" + mouseCursorFile);
-			mouseCursor = ImageIO.read(cursorURL);
-
+			File file = new File("mouse_cursors" + File.separator + mouseCursorFile);
+			ImageData[] cursorImageData = new ImageLoader().load(file.getAbsolutePath());
+			mouseCursor = new Image(display, cursorImageData[0]);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	public BufferedImage captureScreen(Display display, Rectangle recordArea) {
+	public Image captureScreen(Display display, Rectangle recordArea) {
 
 		Point mousePosition = MouseInfo.getPointerInfo().getLocation();
 		mousePosition.x = mousePosition.x - recordArea.x;
 		mousePosition.y = mousePosition.y - recordArea.y;
+    
+        final Image swtImage = new Image(display, recordArea);
+        
+        final GC gc = new GC(display);
+        gc.copyArea(swtImage, recordArea.x, recordArea.y);
+        gc.dispose();
+          
+        final GC gc2 = new GC(swtImage);
+        gc2.drawImage(mouseCursor, mousePosition.x - 8, mousePosition.y - 5);
+        gc2.dispose();
 
-		final Image swtImage = new Image(display, recordArea);
-		final GC gc = new GC(display);
-		gc.copyArea(swtImage, recordArea.x, recordArea.y);
-		gc.dispose();
-
-		BufferedImage image = ImageCoversion.convertToAWT(swtImage.getImageData());
-		
-		// This works on Linux but not Windows
-		/*
-		int width = swtImage.getBounds().width;
-		int height = swtImage.getBounds().height;	
-		int[] pixels = new int[(width * height)];
-		
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-		swtImage.getImageData().getPixels(0, 0, pixels.length, pixels, 0);
-		image.getRaster().setDataElements(0, 0, width, height, pixels);
-		*/
-		
-		Graphics2D grfx = image.createGraphics();
-		grfx.drawImage(mouseCursor, mousePosition.x - 8, mousePosition.y - 5, null);
-		grfx.dispose();
-
-		return image;
+		return swtImage;
 	}
 }

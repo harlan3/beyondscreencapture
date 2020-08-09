@@ -10,6 +10,13 @@ public class FrameCompressor {
 
 	private FramePacket frame;
 
+	private String myOS = System.getProperty("os.name").toLowerCase();
+
+	public boolean isWindows() {
+
+		return (myOS.indexOf("win") >= 0);
+	}
+	
 	public class FramePacket {
 
 		private OutputStream oStream;
@@ -80,9 +87,16 @@ public class FrameCompressor {
 				green = 0;
 				blue = 0;
 			} else {
-				red = (byte) ((newData[inCursor] & 0x00FF0000) >>> 16);
-				green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
-				blue = (byte) ((newData[inCursor] & 0x000000FF));
+				
+				if (isWindows()) {
+					blue = (byte) ((newData[inCursor] & 0x00FF0000) >>> 16);
+					green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
+					red = (byte) ((newData[inCursor] & 0x000000FF));
+				} else {
+					red = (byte) ((newData[inCursor] & 0x00FF0000) >>> 16);
+					green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
+					blue = (byte) ((newData[inCursor] & 0x000000FF));
+				}
 
 				if (red == 0 && green == 0 && blue == 0) {
 					blue = 1;

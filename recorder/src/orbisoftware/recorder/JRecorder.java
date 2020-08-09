@@ -116,7 +116,7 @@ public class JRecorder implements ScreenRecorderListener {
 		try {
 			FileOutputStream oStream = new FileOutputStream(fileName);
 			temp = new File(fileName);
-			recorder = new DesktopScreenRecorder(clippingSelector.clipRect, oStream, this);
+			recorder = new DesktopScreenRecorder(display, clippingSelector.clipRect, oStream, this);
 			recorder.startRecording();
 		} catch (Exception e) {
 			e.printStackTrace();
