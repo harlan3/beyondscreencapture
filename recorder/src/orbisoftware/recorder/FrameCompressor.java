@@ -110,6 +110,13 @@ public class FrameCompressor {
 					green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
 					blue = (byte) ((newData[inCursor] & 0x000000FF));
 				}
+				
+				// Black is always packed as RGB(0,0,1)
+				if ((red == 0) && (green == 0) && (blue == 0)) {
+					red = 0;
+					green = 0;
+					blue = 1;
+				}
 			}
 
 			if (blockRed == red && blockGreen == green && blockBlue == blue) {
