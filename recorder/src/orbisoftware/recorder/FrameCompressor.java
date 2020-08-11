@@ -1,16 +1,20 @@
 
 package orbisoftware.recorder;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.zip.GZIPOutputStream;
+
+import net.jpountz.lz4.LZ4Compressor;
+import net.jpountz.lz4.LZ4Factory;
 
 public class FrameCompressor {
 
 	private FramePacket frame;
 
 	private String myOS = System.getProperty("os.name").toLowerCase();
+
+	private LZ4Factory factory = LZ4Factory.fastestInstance();
+	private LZ4Compressor compressor = factory.fastCompressor();
 
 	public boolean isWindows() {
 
@@ -31,6 +35,7 @@ public class FrameCompressor {
 		}
 
 		private void nextFrame(int[] frameData, long frameTime, boolean reset) {
+
 			this.frameTime = frameTime;
 			previousData = newData;
 			newData = null;
@@ -40,7 +45,7 @@ public class FrameCompressor {
 			if (reset) {
 				this.newData = new int[frameData.length];
 			} else {
-				this.newData = frameData;// new int[frameData.length];
+				this.newData = frameData;
 			}
 		}
 	}
@@ -50,6 +55,7 @@ public class FrameCompressor {
 	}
 
 	public void pack(int[] newData, long frameTimeStamp, boolean reset) throws IOException {
+
 		frame.nextFrame(newData, frameTimeStamp, reset);
 
 		byte[] packed = new byte[newData.length * 4];
@@ -110,7 +116,7 @@ public class FrameCompressor {
 					green = (byte) ((newData[inCursor] & 0x0000FF00) >>> 8);
 					blue = (byte) ((newData[inCursor] & 0x000000FF));
 				}
-				
+
 				// Black is always packed as RGB(0,0,1)
 				if ((red == 0) && (green == 0) && (blue == 0)) {
 					red = 0;
@@ -232,24 +238,15 @@ public class FrameCompressor {
 			frame.oStream.flush();
 		}
 
-		ByteArrayOutputStream bO = new ByteArrayOutputStream();
+		int maxCompressedLength = compressor.maxCompressedLength(packed.length);
+		byte[] compressed = new byte[maxCompressedLength];
+		int compressedLength = compressor.compress(packed, 0, packed.length, compressed, 0, maxCompressedLength);
 
-		byte[] bA = new byte[0];
-
-		GZIPOutputStream zO = new GZIPOutputStream(bO);
-
-		zO.write(packed, 0, outCursor);
-		zO.close();
-		bO.close();
-
-		bA = bO.toByteArray();
-
-		frame.oStream.write((bA.length & 0xFF000000) >>> 24);
-		frame.oStream.write((bA.length & 0x00FF0000) >>> 16);
-		frame.oStream.write((bA.length & 0x0000FF00) >>> 8);
-		frame.oStream.write((bA.length & 0x000000FF));
-
-		frame.oStream.write(bA);
+		frame.oStream.write((compressedLength & 0xFF000000) >>> 24);
+		frame.oStream.write((compressedLength & 0x00FF0000) >>> 16);
+		frame.oStream.write((compressedLength & 0x0000FF00) >>> 8);
+		frame.oStream.write((compressedLength & 0x000000FF));
+		frame.oStream.write(compressed, 0, compressedLength);
 		frame.oStream.flush();
 	}
 }

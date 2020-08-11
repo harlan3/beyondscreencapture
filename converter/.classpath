@@ -7,5 +7,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/jmf.jar"/>
+	<classpathentry kind="lib" path="lib/lz4-java-1.7.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

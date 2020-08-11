@@ -104,11 +104,6 @@ public class JRecorder implements ScreenRecorderListener {
 
 	public void startRecording(String fileName) {
 
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e1) {
-		}
-
 		if ((recorder != null) || (clippingSelector.clipRect == null)) {
 			return;
 		}

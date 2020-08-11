@@ -20,11 +20,13 @@ public abstract class ScreenRecorder implements Runnable {
 	private OutputStream oStream;
 
 	private boolean recording = false;
-	private boolean running = false;
 
 	private long startTime;
 	private long frameTime;
 	private boolean reset;
+
+	private int THREAD_FPS_SLEEP = 50;
+	private int THREAD_POLL_SLEEP = THREAD_FPS_SLEEP / 2;
 
 	private ScreenRecorderListener listener;
 
@@ -50,12 +52,7 @@ public abstract class ScreenRecorder implements Runnable {
 		}
 
 		public void packToStream(DataPack pack) {
-			while (queue.size() > 2) {
-				try {
-					Thread.sleep(10);
-				} catch (Exception e) {
-				}
-			}
+
 			queue.add(pack);
 		}
 
@@ -70,6 +67,7 @@ public abstract class ScreenRecorder implements Runnable {
 						if (reset == true) {
 							reset = false;
 						}
+						Thread.sleep(THREAD_POLL_SLEEP);
 					} catch (Exception e) {
 						e.printStackTrace();
 						try {
@@ -79,12 +77,17 @@ public abstract class ScreenRecorder implements Runnable {
 						return;
 					}
 				}
-				while (queue.isEmpty() == true) {
-					try {
-						Thread.sleep(50);
-					} catch (Exception e) {
-					}
+
+				try {
+					Thread.sleep(THREAD_POLL_SLEEP);
+				} catch (InterruptedException e) {
 				}
+			}
+			try {
+				oStream.flush();
+				oStream.close();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 	}
@@ -110,10 +113,7 @@ public abstract class ScreenRecorder implements Runnable {
 
 				final Display display = Display.getDefault();
 
-				startTime = System.currentTimeMillis();
-
 				recording = true;
-				running = true;
 
 				frameSize = recordArea.width * recordArea.height;
 				streamPacker = new StreamPacker(oStream, frameSize);
@@ -123,15 +123,14 @@ public abstract class ScreenRecorder implements Runnable {
 					while (recording) {
 
 						recordFrame(display);
-
 						display.readAndDispatch();
-						Thread.sleep(10);
+
+						Thread.sleep(THREAD_FPS_SLEEP);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 
-				running = false;
 				recording = false;
 
 				listener.recordingStopped();
@@ -156,6 +155,8 @@ public abstract class ScreenRecorder implements Runnable {
 
 	public void startRecording() {
 
+		startTime = System.currentTimeMillis();
+
 		if (recording || (recordArea == null)) {
 			return;
 		}
@@ -178,22 +179,6 @@ public abstract class ScreenRecorder implements Runnable {
 			return;
 
 		triggerRecordingStop();
-
-		int count = 0;
-		while (running == true && count < 10) {
-			try {
-				Thread.sleep(100);
-			} catch (Exception e) {
-			}
-			count++;
-		}
-
-		try {
-			oStream.flush();
-			oStream.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public boolean isRecording() {

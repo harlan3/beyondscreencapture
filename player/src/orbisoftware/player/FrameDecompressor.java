@@ -1,14 +1,17 @@
 
 package orbisoftware.player;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
+
+import net.jpountz.lz4.LZ4Factory;
+import net.jpountz.lz4.LZ4FastDecompressor;
 
 public class FrameDecompressor {
 	private static final int ALPHA = 0xFF000000;
+
+	private LZ4Factory factory = LZ4Factory.fastestInstance();
+	private LZ4FastDecompressor decompressor = factory.fastDecompressor();
 
 	public class FramePacket {
 
@@ -54,7 +57,6 @@ public class FrameDecompressor {
 	public FramePacket unpack() throws IOException {
 		frame.nextFrame();
 
-		// try{
 		int i = frame.iStream.read();
 		int time = i;
 		time = time << 8;
@@ -76,8 +78,8 @@ public class FrameDecompressor {
 			return frame;
 		}
 
-		ByteArrayOutputStream bO = new ByteArrayOutputStream();
 		try {
+
 			i = frame.iStream.read();
 			int zSize = i;
 			zSize = zSize << 8;
@@ -91,39 +93,15 @@ public class FrameDecompressor {
 			zSize += i;
 
 			byte[] zData = new byte[zSize];
-			int readCursor = 0;
-			int sizeRead = 0;
+			frame.iStream.read(zData, 0, zSize);
 
-			while (sizeRead > -1) {
-				readCursor += sizeRead;
-				if (readCursor >= zSize) {
-					break;
-				}
+			frame.packed = decompressor.decompress(zData, (frame.frameSize * 4));
 
-				sizeRead = frame.iStream.read(zData, readCursor, zSize - readCursor);
-			}
-
-			ByteArrayInputStream bI = new ByteArrayInputStream(zData);
-			GZIPInputStream zI = new GZIPInputStream(bI);
-
-			byte[] buffer = new byte[1000];
-			sizeRead = zI.read(buffer);
-
-			while (sizeRead > -1) {
-				bO.write(buffer, 0, sizeRead);
-				bO.flush();
-
-				sizeRead = zI.read(buffer);
-			}
-			bO.flush();
-			bO.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 			frame.result = 0;
 			return frame;
 		}
-
-		frame.packed = bO.toByteArray();
 
 		runLengthDecode();
 
@@ -140,7 +118,7 @@ public class FrameDecompressor {
 
 		int rgb = 0xFF000000;
 
-		while (inCursor < frame.packed.length && outCursor < frame.frameSize) {
+		while (inCursor < (frame.packed.length - 4) && outCursor < frame.frameSize) {
 			if (frame.packed[inCursor] == -1) {
 				inCursor++;
 

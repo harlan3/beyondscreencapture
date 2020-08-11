@@ -32,6 +32,8 @@ public class ScreenPlayer implements Runnable {
 	private int width;
 	private int height;
 
+	private int THREAD_WAITING = 50;
+	
 	public ScreenPlayer(String videoFile, ScreenPlayerListener listener) {
 
 		this.listener = listener;
@@ -42,9 +44,6 @@ public class ScreenPlayer implements Runnable {
 
 	private void initialize() {
 
-		startTime = System.currentTimeMillis();
-		frameTime = startTime;
-		lastFrameTime = startTime;
 		paused = true;
 
 		try {
@@ -80,6 +79,10 @@ public class ScreenPlayer implements Runnable {
 	}
 
 	public void play() {
+		
+		startTime = System.currentTimeMillis();
+		frameTime = startTime;
+		lastFrameTime = startTime;
 
 		fastForward = false;
 		paused = false;
@@ -112,7 +115,7 @@ public class ScreenPlayer implements Runnable {
 			while (paused && !resetReq) {
 
 				try {
-					Thread.sleep(50);
+					Thread.sleep(THREAD_WAITING);
 				} catch (Exception e) {
 				}
 				startTime += 50;
@@ -131,7 +134,7 @@ public class ScreenPlayer implements Runnable {
 			} else {
 				while ((System.currentTimeMillis() - startTime < frameTime) && !paused) {
 					try {
-						Thread.sleep(100);
+						Thread.sleep(THREAD_WAITING);
 					} catch (Exception e) {
 					}
 				}

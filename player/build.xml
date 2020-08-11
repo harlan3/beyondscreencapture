@@ -23,12 +23,16 @@
    <!-- Compiles the java code -->
    <target name="compile" depends="clean, makedir">
       <javac srcdir="${src.dir}" destdir="${build.dir}" debuglevel="${debuglevel}">
+         <classpath>
+            <pathelement path="${lib.dir}\lz4-java-1.7.1.jar"/>
+         </classpath>
       </javac>
    </target>
    
    <!--Creates the deployable jar file  -->
    <target name="jar" depends="compile">
       <jar destfile="${dist.dir}\player.jar" basedir="${build.dir}">
+         <zipgroupfileset dir="${lib.dir}" includes="lz4-java-1.7.1.jar"/>
          <manifest>
             <attribute name="Main-Class" value="orbisoftware.player.JPlayer"/>
          </manifest>
