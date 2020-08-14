@@ -1,7 +1,12 @@
 
 package orbisoftware.imagegenerator;
 
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.MemoryImageSource;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,6 +25,8 @@ public class GenerateImage implements Runnable {
 	private boolean finished;
 	private long nextFrame;
 
+	private MemoryImageSource mis;
+	
 	public GenerateImage(String videoFile, String destDir) {
 
 		this.videoFile = videoFile;
@@ -77,7 +84,8 @@ public class GenerateImage implements Runnable {
 	private void generateFrame() throws IOException {
 
 		LZ4FrameDecompressor.FramePacket frame = decompressor.unpack();
-		BufferedImage destImage = new BufferedImage(width, height, BufferedImage.TYPE_3BYTE_BGR);
+		BufferedImage destImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
+		Image memImage = null;
 		
 		int result = frame.getResult();
 		
@@ -90,14 +98,13 @@ public class GenerateImage implements Runnable {
 
 		try {
 			
-			// Using loop here because of issues putting frame data in
-			// a Buffered Image.  The alpha channel causes problems.
-		    for (int y = 0; y < height; y++) {
-		        for (int x = 0; x < width; x++) {
-		        	int rgb = frame.getData()[((y * width) + x)];
-		        	destImage.setRGB(x, y, rgb);
-		        }
-		    }
+			if (mis == null)
+				mis = new MemoryImageSource(width, height, frame.getData(), 0, width);
+			else
+				mis.newPixels(frame.getData(), ColorModel.getRGBdefault(), 0, width);
+			
+			memImage = Toolkit.getDefaultToolkit().createImage(mis);
+			destImage.getGraphics().drawImage(memImage, 0,  0,  null);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
