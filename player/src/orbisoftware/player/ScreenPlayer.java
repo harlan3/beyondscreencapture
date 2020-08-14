@@ -165,7 +165,6 @@ public class ScreenPlayer implements Runnable {
 		}
 
 		LZ4FrameDecompressor.FramePacket frame = decompressor.unpack();
-		frameTime = frame.getTimeStamp();
 
 		int result = frame.getResult();
 		if (result == 0) {
@@ -175,6 +174,8 @@ public class ScreenPlayer implements Runnable {
 			listener.playerPaused();
 			return;
 		}
+		
+		frameTime = frame.getTimeStamp();
 
 		if (mis == null) {
 			mis = new MemoryImageSource(area.width, area.height, frame.getData(), 0, area.width);
