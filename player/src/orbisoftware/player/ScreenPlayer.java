@@ -15,7 +15,7 @@ public class ScreenPlayer implements Runnable {
 	private MemoryImageSource mis = null;
 	private Rectangle area;
 
-	private FrameDecompressor decompressor;
+	private LZ4FrameDecompressor decompressor;
 
 	private long startTime;
 	private long frameTime;
@@ -24,6 +24,8 @@ public class ScreenPlayer implements Runnable {
 	private boolean running;
 	private boolean paused;
 	private boolean fastForward;
+	private long pauseOffsetTime;
+	private long systemTimeOffset;
 
 	private boolean resetReq;
 
@@ -32,8 +34,8 @@ public class ScreenPlayer implements Runnable {
 	private int width;
 	private int height;
 
-	private int THREAD_WAITING = 50;
-	
+	private int THREAD_WAITING = 10;
+
 	public ScreenPlayer(String videoFile, ScreenPlayerListener listener) {
 
 		this.listener = listener;
@@ -59,7 +61,7 @@ public class ScreenPlayer implements Runnable {
 			height += iStream.read();
 
 			area = new Rectangle(width, height);
-			decompressor = new FrameDecompressor(iStream, width * height);
+			decompressor = new LZ4FrameDecompressor(iStream, width * height);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -75,14 +77,23 @@ public class ScreenPlayer implements Runnable {
 	public void reset() {
 
 		resetReq = false;
+		pauseOffsetTime = 0;
 		initialize();
 	}
 
 	public void play() {
-		
-		startTime = System.currentTimeMillis();
-		frameTime = startTime;
-		lastFrameTime = startTime;
+
+		systemTimeOffset = 0;
+
+		if (paused)
+			startTime = System.currentTimeMillis() - pauseOffsetTime;
+		else if (fastForward) {
+			systemTimeOffset = lastFrameTime;
+			startTime = System.currentTimeMillis();
+		} else
+			startTime = System.currentTimeMillis();
+
+		pauseOffsetTime = 0;
 
 		fastForward = false;
 		paused = false;
@@ -99,6 +110,7 @@ public class ScreenPlayer implements Runnable {
 
 	public void pause() {
 		paused = true;
+		pauseOffsetTime = lastFrameTime;
 	}
 
 	public void stop() {
@@ -118,12 +130,11 @@ public class ScreenPlayer implements Runnable {
 					Thread.sleep(THREAD_WAITING);
 				} catch (Exception e) {
 				}
-				startTime += 50;
 			}
 
 			try {
 				readFrame();
-				listener.newFrame();
+				listener.newFrame(frameTime);
 			} catch (IOException ioe) {
 				listener.showNewImage(null);
 				break;
@@ -132,7 +143,7 @@ public class ScreenPlayer implements Runnable {
 			if (fastForward == true) {
 				startTime -= (frameTime - lastFrameTime);
 			} else {
-				while ((System.currentTimeMillis() - startTime < frameTime) && !paused) {
+				while ((System.currentTimeMillis() + systemTimeOffset - startTime < frameTime) && !paused) {
 					try {
 						Thread.sleep(THREAD_WAITING);
 					} catch (Exception e) {
@@ -153,7 +164,7 @@ public class ScreenPlayer implements Runnable {
 			return;
 		}
 
-		FrameDecompressor.FramePacket frame = decompressor.unpack();
+		LZ4FrameDecompressor.FramePacket frame = decompressor.unpack();
 		frameTime = frame.getTimeStamp();
 
 		int result = frame.getResult();

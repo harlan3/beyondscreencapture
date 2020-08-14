@@ -1,0 +1,17 @@
+
+ffmpeg -framerate 28 -i IMG_%d.jpg -vcodec libx264 -crf 20 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" output.mp4
+
+-framerate
+is the number of frames per second,
+
+-i IMG_%d.jpg
+images proceed with integer number and do not have any leading zeros
+
+-vcodec 
+the video codec is libx264 (H.264)
+
+-crf 20
+constant quality mode, very high quality
+
+-vf "scale=trunc(iw/2)*2:trunc(ih/2)*2"
+divides the original width and height by 2, truncates it and then doubles it.

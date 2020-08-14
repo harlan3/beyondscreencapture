@@ -38,7 +38,6 @@ public class JPlayer extends JFrame implements ScreenPlayerListener, ActionListe
 
 	private String target;
 	private int frameCount;
-	private long startTime;
 
 	private Color activeButtonColor = new Color(248, 229, 179);
 
@@ -124,8 +123,8 @@ public class JPlayer extends JFrame implements ScreenPlayerListener, ActionListe
 			FileExtensionFilter filter = new FileExtensionFilter();
 
 			filter = new FileExtensionFilter();
-			filter.addExtension("cap");
-			filter.setDescription("Screen Capture File");
+			filter.addExtension("bcap");
+			filter.setDescription("Beyond Capture File");
 
 			if (target != null) {
 				fileChooser.setSelectedFile(new File(target));
@@ -198,11 +197,10 @@ public class JPlayer extends JFrame implements ScreenPlayerListener, ActionListe
 		repaint(0);
 	}
 
-	public void newFrame() {
+	public void newFrame(long frameTime) {
 		frameCount++;
-		long time = System.currentTimeMillis() - startTime;
-		String seconds = "" + time / 1000;
-		String milliseconds = String.format("%04d", time % 1000);
+		String seconds = "" + frameTime / 1000;
+		String milliseconds = String.format("%04d", frameTime % 1000);
 		frameLabel.setText("Frame: " + frameCount + " Time: " + seconds + "." + milliseconds);
 	}
 
@@ -270,8 +268,6 @@ public class JPlayer extends JFrame implements ScreenPlayerListener, ActionListe
 		stop.setBackground(null);
 
 		frameCount = 0;
-		startTime = System.currentTimeMillis();
-		;
 
 		screenPlayer.reset();
 		text.setText("Ready to play " + target);
@@ -298,7 +294,6 @@ public class JPlayer extends JFrame implements ScreenPlayerListener, ActionListe
 		stop.setBackground(null);
 
 		screenPlayer.play();
-		startTime = System.currentTimeMillis();
 
 		text.setText("Playing " + target);
 	}

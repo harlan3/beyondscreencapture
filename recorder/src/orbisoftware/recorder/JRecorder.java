@@ -120,7 +120,6 @@ public class JRecorder implements ScreenRecorderListener {
 
 	public void frameRecorded() {
 		frameCount++;
-		System.out.println("Frame count: " + frameCount);
 	}
 
 	public void recordingStopped() {
@@ -128,18 +127,18 @@ public class JRecorder implements ScreenRecorderListener {
 		if (!shuttingDown) {
 
 			FileDialog dialog = new FileDialog(shell, SWT.SAVE);
-			dialog.setFilterNames(new String[] { "Capture Files" });
-			dialog.setFilterExtensions(new String[] { "*.cap" });
+			dialog.setFilterNames(new String[] { "Beyond Capture Files" });
+			dialog.setFilterExtensions(new String[] { "*.bcap" });
 
-			dialog.setFileName("MyCapture.cap");
+			dialog.setFileName("MyCapture.bcap");
 			String saveFileName = dialog.open();
 
 			if (saveFileName != null) {
 				File target = new File(saveFileName);
 				if (target != null) {
 
-					if (!target.getName().endsWith(".cap"))
-						target = new File(target + ".cap");
+					if (!target.getName().endsWith(".bcap"))
+						target = new File(target + ".bcap");
 
 					FileHelper.copy(temp, target);
 				}

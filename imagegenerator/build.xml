@@ -24,7 +24,6 @@
    <target name="compile" depends="clean, makedir">
       <javac srcdir="${src.dir}" destdir="${build.dir}" debuglevel="${debuglevel}">
          <classpath>
-            <pathelement path="${lib.dir}\jmf.jar"/>
             <pathelement path="${lib.dir}\lz4-java-1.7.1.jar"/>
          </classpath>
       </javac>
@@ -32,11 +31,10 @@
    
    <!--Creates the deployable jar file  -->
    <target name="jar" depends="compile">
-      <jar destfile="${dist.dir}\converter.jar" basedir="${build.dir}">
-         <zipgroupfileset dir="${lib.dir}" includes="jmf.jar"/>
+      <jar destfile="${dist.dir}\imagegenerator.jar" basedir="${build.dir}">
          <zipgroupfileset dir="${lib.dir}" includes="lz4-java-1.7.1.jar"/>
          <manifest>
-            <attribute name="Main-Class" value="orbisoftware.converter.RecordingConverter"/>
+            <attribute name="Main-Class" value="orbisoftware.imagegenerator.ImageGenerator"/>
          </manifest>
       </jar>
    </target>

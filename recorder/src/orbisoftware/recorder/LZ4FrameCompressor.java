@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import net.jpountz.lz4.LZ4Compressor;
 import net.jpountz.lz4.LZ4Factory;
 
-public class FrameCompressor {
+public class LZ4FrameCompressor {
 
 	private FramePacket frame;
 
@@ -50,7 +50,7 @@ public class FrameCompressor {
 		}
 	}
 
-	public FrameCompressor(OutputStream oStream, int frameSize) {
+	public LZ4FrameCompressor(OutputStream oStream, int frameSize) {
 		frame = new FramePacket(oStream, frameSize);
 	}
 

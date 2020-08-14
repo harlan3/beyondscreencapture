@@ -25,7 +25,7 @@ public abstract class ScreenRecorder implements Runnable {
 	private long frameTime;
 	private boolean reset;
 
-	private int THREAD_FPS_SLEEP = 50;
+	private int THREAD_FPS_SLEEP = 10;
 	private int THREAD_POLL_SLEEP = THREAD_FPS_SLEEP / 2;
 
 	private ScreenRecorderListener listener;
@@ -43,10 +43,10 @@ public abstract class ScreenRecorder implements Runnable {
 	private class StreamPacker implements Runnable {
 
 		Queue<DataPack> queue = new LinkedList<DataPack>();
-		private FrameCompressor compressor;
+		private LZ4FrameCompressor compressor;
 
 		public StreamPacker(OutputStream oStream, int frameSize) {
-			compressor = new FrameCompressor(oStream, frameSize);
+			compressor = new LZ4FrameCompressor(oStream, frameSize);
 
 			new Thread(this, "Stream Packer").start();
 		}
@@ -148,6 +148,7 @@ public abstract class ScreenRecorder implements Runnable {
 		rawData = new int[frameSize];
 
 		swtImage.getImageData().getPixels(0, 0, rawData.length, rawData, 0);
+		swtImage.dispose();
 
 		streamPacker.packToStream(new DataPack(rawData, frameTime));
 		listener.frameRecorded();

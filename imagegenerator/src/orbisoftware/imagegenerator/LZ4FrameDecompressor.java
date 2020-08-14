@@ -1,5 +1,5 @@
 
-package orbisoftware.player;
+package orbisoftware.imagegenerator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +7,7 @@ import java.io.InputStream;
 import net.jpountz.lz4.LZ4Factory;
 import net.jpountz.lz4.LZ4FastDecompressor;
 
-public class FrameDecompressor {
+public class LZ4FrameDecompressor {
 	private static final int ALPHA = 0xFF000000;
 
 	private LZ4Factory factory = LZ4Factory.fastestInstance();
@@ -50,7 +50,7 @@ public class FrameDecompressor {
 
 	public FramePacket frame;
 
-	public FrameDecompressor(InputStream iStream, int frameSize) {
+	public LZ4FrameDecompressor(InputStream iStream, int frameSize) {
 		frame = new FramePacket(iStream, frameSize);
 	}
 
