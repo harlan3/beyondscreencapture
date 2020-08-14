@@ -1,10 +1,10 @@
 
-ffmpeg -framerate 28 -i IMG_%d.jpg -vcodec libx264 -crf 20 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" output.mp4
+ffmpeg -framerate 28 -i IMG_%d.png -vcodec libx264 -crf 20 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" output.mp4
 
 -framerate
 is the number of frames per second,
 
--i IMG_%d.jpg
+-i IMG_%d.png
 images proceed with integer number and do not have any leading zeros
 
 -vcodec 
