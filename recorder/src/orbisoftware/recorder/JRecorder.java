@@ -15,9 +15,12 @@ import org.eclipse.swt.widgets.Shell;
 
 public class JRecorder implements ScreenRecorderListener {
 
-	private ScreenRecorder recorder;
-	private File temp;
-
+	private ScreenRecorder screenRecorder;
+	private File videoTemp;
+	private AudioRecorder audioRecorder;
+	private File audioTemp;
+	private boolean audioRecordingEnabled = true;
+	
 	private boolean shuttingDown = false;
 	@SuppressWarnings("unused")
 	private int frameCount = 0;
@@ -72,8 +75,11 @@ public class JRecorder implements ScreenRecorderListener {
 		Listener startListener = new Listener() {
 			public void handleEvent(Event event) {
 				try {
-					temp = File.createTempFile("temp", "rec");
-					startRecording(temp.getAbsolutePath());
+					videoTemp = File.createTempFile("videotemp", "rec");
+					audioTemp = File.createTempFile("audiotemp", "wav");
+					
+					startVideoRecording();
+					startAudioRecording();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -87,8 +93,10 @@ public class JRecorder implements ScreenRecorderListener {
 		stop.setBounds(200, 0, 100, 30);
 		Listener stopListener = new Listener() {
 			public void handleEvent(Event event) {
-				if (recorder != null)
-					recorder.stopRecording();
+				if (screenRecorder != null)
+					screenRecorder.stopRecording();
+				if (audioRecorder != null)
+					audioRecorder.stopRecording();
 			}
 		};
 		stop.addListener(SWT.Selection, stopListener);
@@ -102,20 +110,32 @@ public class JRecorder implements ScreenRecorderListener {
 		display.dispose();
 	}
 
-	public void startRecording(String fileName) {
+	public void startVideoRecording() {
 
-		if ((recorder != null) || (clippingSelector.clipRect == null)) {
+		if ((screenRecorder != null) || (clippingSelector.clipRect == null)) {
 			return;
 		}
 
 		try {
-			FileOutputStream oStream = new FileOutputStream(fileName);
-			temp = new File(fileName);
-			recorder = new DesktopScreenRecorder(display, clippingSelector.clipRect, oStream, this);
-			recorder.startRecording();
+			FileOutputStream oStream = new FileOutputStream(videoTemp.getAbsoluteFile());
+			screenRecorder = new DesktopScreenRecorder(display, clippingSelector.clipRect, oStream, this);
+			screenRecorder.startRecording();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void startAudioRecording() {
+		
+		try {
+			audioRecorder = new AudioRecorder(audioTemp);
+		} catch (Exception e) {
+			audioRecordingEnabled = false;
+			return;
+		}
+		
+		Thread audioThread = new Thread(audioRecorder);
+		audioThread.start();
 	}
 
 	public void frameRecorded() {
@@ -133,24 +153,39 @@ public class JRecorder implements ScreenRecorderListener {
 			dialog.setFileName("MyCapture.bcap");
 			String saveFileName = dialog.open();
 
+			// Save audio and video
 			if (saveFileName != null) {
-				File target = new File(saveFileName);
-				if (target != null) {
+				File video = new File(saveFileName);
+				File audio = new File(saveFileName.replaceAll(".bcap", ".wav"));
+				
+				if (video != null) {
 
-					if (!target.getName().endsWith(".bcap"))
-						target = new File(target + ".bcap");
+					if (!video.getName().endsWith(".bcap"))
+						video = new File(video + ".bcap");
 
-					FileHelper.copy(temp, target);
+					FileHelper.copy(videoTemp, video);
+				}
+				
+				if (audio != null && audioRecordingEnabled) {
+					
+					if (!audio.getName().endsWith(".wav"))
+						audio = new File(audio + ".wav");
+					
+					FileHelper.copy(audioTemp, audio);
 				}
 			}
 
-			FileHelper.delete(temp);
-			recorder = null;
+			FileHelper.delete(videoTemp);
+			FileHelper.delete(audioTemp);
+			
+			screenRecorder = null;
 			frameCount = 0;
 
 			shutdown();
-		} else
-			FileHelper.delete(temp);
+		} else {
+			FileHelper.delete(videoTemp);
+			FileHelper.delete(audioTemp);
+		}
 	}
 
 	public static void main(String[] args) {
@@ -173,8 +208,11 @@ public class JRecorder implements ScreenRecorderListener {
 
 		shuttingDown = true;
 
-		if (recorder != null)
-			recorder.stopRecording();
+		if (screenRecorder != null)
+			screenRecorder.stopRecording();
+		
+		if (audioRecorder != null)
+			audioRecorder.stopRecording();
 
 		shell.dispose();
 		System.exit(0);
