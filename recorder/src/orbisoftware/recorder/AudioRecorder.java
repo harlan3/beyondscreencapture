@@ -32,7 +32,7 @@ public class AudioRecorder implements Runnable {
 	private HashMap<String, String> audioRecPropsMap = new HashMap<>();
 
 	AudioRecorder(File audioWavFile) throws Exception {
-
+		
 		wavFile = audioWavFile;
 		loadXML();
 
@@ -41,12 +41,13 @@ public class AudioRecorder implements Runnable {
 			Mixer.Info[] mixerInfos = AudioSystem.getMixerInfo();
 			for (Mixer.Info mixerInfo : mixerInfos) {
 
-				if (mixerInfo.getName().equals(audioRecPropsMap.get("MixerName"))) {
+				if (mixerInfo.getName().contains(audioRecPropsMap.get("MixerName"))) {
 
 					Mixer mixer = AudioSystem.getMixer(mixerInfo);
-					for (Line.Info lineInfo : mixer.getSourceLineInfo()) {
-
-						if (lineInfo.getLineClass() == javax.sound.sampled.SourceDataLine.class) {
+							
+					for (Line.Info lineInfo : mixer.getTargetLineInfo()) {
+						
+						if (lineInfo.getLineClass() == javax.sound.sampled.TargetDataLine.class) {
 
 							format = getAudioFormat();
 							info = new DataLine.Info(TargetDataLine.class, format);
@@ -125,6 +126,25 @@ public class AudioRecorder implements Runnable {
 	public void run() {
 
 		try {
+			
+//			This doesn't seem to work for mic volume control because line.getControls()
+//			doesn't return anything.  Assume OS system sound level control instead.
+//
+//			Control[] controls = line.getControls();
+//			int RECORD_VOLUME_LEVEL = 50;
+//			
+//			for (Control ctl : controls) {
+//
+//				if (ctl.getType().toString().equals("Select")) {
+//					((BooleanControl) ctl).setValue(true);
+//				}
+//
+//				if (ctl.getType().toString().equals("Volume")) {
+//					FloatControl vol = (FloatControl) ctl;
+//					float setVal = vol.getMinimum() + (vol.getMaximum() - vol.getMinimum()) * RECORD_VOLUME_LEVEL;
+//					vol.setValue(setVal);
+//				}
+//			}
 
 			line.open(format);
 			line.start();
