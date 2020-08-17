@@ -30,8 +30,8 @@ public class AudioRecProps {
 
 			Mixer mixer = AudioSystem.getMixer(mixerInfo);
 
-			for (Line.Info lineInfo : mixer.getSourceLineInfo()) {
-				if (lineInfo.getLineClass() == javax.sound.sampled.SourceDataLine.class) {
+			for (Line.Info lineInfo : mixer.getTargetLineInfo()) {
+				if (lineInfo.getLineClass() == javax.sound.sampled.TargetDataLine.class) {
 					mixerCnt++;
 					sourceMixers.add(mixerInfo.getName());
 					System.out.println(
