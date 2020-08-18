@@ -1,11 +1,14 @@
 
-ffmpeg -framerate 28 -i imageDir/IMG_%d.png -vcodec libx264 -pix_fmt yuv420p -crf 20 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" output.mp4
+ffmpeg -framerate 28 -i imageDir/IMG_%d.png -i ../recorder/MyCapture.wav -vcodec libx264 -pix_fmt yuv420p -crf 20 -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" output.mp4
 
 -framerate
-is the number of frames per second,
+is the number of frames per second.  This can be calculated based on info from player.
 
 -i IMG_%d.png
 images proceed with integer number and do not have any leading zeros
+
+-i ../recorder/MyCapture.wav
+audio file to be used in output video
 
 -vcodec 
 the video codec is libx264 (H.264)
