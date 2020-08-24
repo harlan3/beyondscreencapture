@@ -90,7 +90,7 @@ public class AudioRecProps {
 			writer.println("   </setting>");
 			writer.println("   <setting>");
 			writer.println("      <name>SampleRate</name>");
-			writer.println("      <value>8000</value>");
+			writer.println("      <value>48000</value>");
 			writer.println("   </setting>");
 			writer.println("   <setting>");
 			writer.println("      <name>SampleSizeInBits</name>");
